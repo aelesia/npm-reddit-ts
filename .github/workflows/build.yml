@@ -68,7 +68,6 @@ jobs:
         run: yarn install
 
       - run: yarn run lint
-      - run: yarn run test
       - run: |
           npx @siliconjungles/rn-scripts commit_all "
             repo=https://$GITHUB_ACTOR:${{secrets.GITHUB_TOKEN}}@github.com/$GITHUB_REPOSITORY.git
