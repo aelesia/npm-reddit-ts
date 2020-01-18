@@ -46,7 +46,7 @@ jobs:
       - if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: yarn install
 
-      - run: yarn run test_coverage
+      - run: CLIENT_ID=${{secrets.CLIENT_ID}} SECRET=${{secrets.SECRET}} USERNAME=${{secrets.USERNAME}} PASSWORD=${{secrets.PASSWORD}} yarn run test_coverage
 
   lint:
     if: contains(github.ref, 'refs/heads/develop') || contains(github.ref, 'refs/heads/release') || contains(github.ref, 'refs/heads/hotfix') || contains(github.ref, 'refs/heads/ci')

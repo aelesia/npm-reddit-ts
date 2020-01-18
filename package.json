@@ -1,10 +1,10 @@
 {
-  "name": "@aelesia/npm-template",
-  "version": "0.1.4",
-  "description": "Template for NPM packages",
-  "author": "",
+  "name": "reddit-ts",
+  "version": "0.1.0",
+  "description": "Reddit API written in Typescript",
+  "author": "aelesia",
   "license": "MIT",
-  "repository": "",
+  "repository": "https://github.com/aelesia/npm-reddit-ts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,9 +14,13 @@
     "test_coverage": "jest --collectCoverage",
     "lint": "eslint . --ext .ts --fix"
   },
-  "dependencies": {},
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "httyp": "^0.1.7"
+  },
   "devDependencies": {
     "@types/jest": "^24.0.23",
+    "@types/node": "^13.1.8",
     "@typescript-eslint/eslint-plugin": "^2.14.0",
     "@typescript-eslint/parser": "^2.10.0",
     "eslint": "^6.8.0",
@@ -26,5 +30,8 @@
     "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",
     "typescript": "^3.7.4"
+  },
+  "meta": {
+    "npm_template_version": "0.1.5"
   }
 }

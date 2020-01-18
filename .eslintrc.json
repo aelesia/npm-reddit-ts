@@ -31,6 +31,11 @@
 		"@typescript-eslint/camelcase": "off",
 		"@typescript-eslint/class-name-casing": "off",
 		"@typescript-eslint/ban-ts-ignore": "off",
+		"@typescript-eslint/member-delimiter-style": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-empty-function": "warn",
+		"@typescript-eslint/no-empty-interface": "warn",
+		"@typescript-eslint/no-namespace": "warn",
 		"prettier/prettier": "warn",
 		"prefer-const": "off"
 	}
