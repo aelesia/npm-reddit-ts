@@ -11,62 +11,74 @@ import { rethrow } from '@aelesia/commons'
 
 type Credentials = {
   user_agent: string
-  client_id: string
-  client_secret: string
-  password: string
-  username: string
+  o2a?: {
+    client_id: string
+    client_secret: string
+    password: string
+    username: string
+  }
+  bearer_token?: string
 }
 
 export default class RedditAPI {
   oauth2: Http = null as any
 
-  constructor(credentials?: Credentials) {
-    if (credentials) {
+  constructor(credentials: Credentials) {
+    if (credentials.o2a) {
       this.oauth2 = Http.url('')
         .auth_oauth2_password(
           new OAuth2Token({
             access_token_url: 'https://www.reddit.com/api/v1/access_token',
-            client_id: credentials.client_id,
-            client_secret: credentials.client_secret,
-            password: credentials.password,
-            username: credentials.username
+            client_id: credentials.o2a.client_id,
+            client_secret: credentials.o2a.client_secret,
+            password: credentials.o2a.password,
+            username: credentials.o2a.username
           })
         )
         .header('User-Agent', credentials.user_agent)
-    } else if (false) {
-      // For future usage where Bearer token is passed instead of OAuth2 token
-      this.oauth2 = Http.url('').auth_bearer('')
+    } else if (credentials.bearer_token) {
+      this.oauth2 = Http.url('')
+        .auth_bearer('')
+        .header('User-Agent', credentials.user_agent)
     }
   }
 
   async comments(subreddit: string): Promise<Post[]> {
-    let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/comments.json`).get<Comments>()).data
+    return await this.trycatch<Post[]>(async () => {
+      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/comments.json`).get<Comments>()).data
 
-    return data.data.children.map(map_t1)
+      return data.data.children.map(map_t1)
+    })
   }
 
   async threads(subreddit: string): Promise<Post[]> {
-    let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/new.json`).get<Threads>()).data
+    return await this.trycatch<Post[]>(async () => {
+      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/new.json`).get<Threads>()).data
 
-    return data.data.children.map(map_t3)
+      return data.data.children.map(map_t3)
+    })
   }
 
   async reply(thing_id: string, text: string): Promise<void> {
-    let resp = await this.oauth2
-      .url('https://oauth.reddit.com/api/comment')
-      .body_forms({ thing_id, text })
-      .post<JQueryResponse>()
+    return await this.trycatch<void>(async () => {
+      let resp = await this.oauth2
+        .url('https://oauth.reddit.com/api/comment')
+        .body_forms({ thing_id, text })
+        .post<JQueryResponse>()
 
-    if (!resp.data.success) {
-      if (JSON.stringify(resp.data.jquery).includes('you are doing that too much')) {
-        throw new RedditAPIErr.PostLimit(`thing_id: ${thing_id}`)
+      if (!resp.data.success) {
+        if (JSON.stringify(resp.data.jquery).includes('you are doing that too much')) {
+          throw new RedditAPIErr.PostLimit(`thing_id: ${thing_id}`)
+        }
+        throw new RedditAPIErr.Failed(`${JSON.stringify(resp.data)}`)
       }
-      throw new RedditAPIErr.General(`${JSON.stringify(resp.data)}`)
-    }
+    })
   }
 
   async me(): Promise<Me> {
-    return (await this.oauth2.url('https://oauth.reddit.com/api/v1/me').get<Me>()).data
+    return await this.trycatch<Me>(async () => {
+      return (await this.oauth2.url('https://oauth.reddit.com/api/v1/me').get<Me>()).data
+    })
   }
 
   private async search(username: string, after?: string): Promise<Search> {
@@ -75,42 +87,27 @@ export default class RedditAPI {
   }
 
   async search_all(username: string): Promise<Post[]> {
-    let data: Search | undefined
-    let all_posts: Post[] = []
-    do {
-      data = await this.search(username, data?.data.after ?? '')
-      let map = data.data.children.map(map_search)
-      all_posts = all_posts.concat(map)
-    } while (data.data.after)
+    return await this.trycatch<Post[]>(async () => {
+      let data: Search | undefined
+      let all_posts: Post[] = []
+      do {
+        data = await this.search(username, data?.data.after ?? '')
+        let map = data.data.children.map(map_search)
+        all_posts = all_posts.concat(map)
+      } while (data.data.after)
 
-    return all_posts
+      return all_posts
+    })
   }
 
   async delete(id: string): Promise<void> {
-    let resp = await this.oauth2
-      .url('https://oauth.reddit.com/api/del')
-      .body_forms({ id })
-      .post()
-
-    if (resp.status !== 200) {
-      throw new RedditAPIErr.General(`${JSON.stringify(resp.data)}`)
-    }
+    return await this.trycatch<void>(async () => {
+      await this.oauth2
+        .url('https://oauth.reddit.com/api/del')
+        .body_forms({ id })
+        .post<JQueryResponse>()
+    })
   }
-
-  // async edit(thing_id: string, text: string): Promise<void> {
-  //   try {
-  //     let resp = await this.oauth2
-  //       .url('https://oauth.reddit.com/api/editusertext')
-  //       .body_forms({ thing_id, text })
-  //       .post<JQueryResponse>()
-  //     if (!resp.data.success) {
-  //       throw new RedditAPIErr.General(`${JSON.stringify(resp.data)}`)
-  //     }
-  //   } catch (e) {
-  //     if (e instanceof RedditAPIErr.General) throw e
-  //     rethrow(new RedditAPIErr.General(e.message), e)
-  //   }
-  // }
 
   async edit(thing_id: string, text: string): Promise<void> {
     return await this.trycatch<void>(async () => {
@@ -129,6 +126,10 @@ export default class RedditAPI {
       return await func()
     } catch (e) {
       if (e instanceof RedditAPIErr.General) throw e
+      else if (e.response?.status === 503 ?? false) rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
+      else if (e instanceof TypeError && e.message.match(/Cannot read property .* of null/)) {
+        rethrow(new RedditAPIErr.Null('Did you forget to initialize RedditAPI Client with O2A or Bearer token?'), e)
+      }
       rethrow(new RedditAPIErr.General(e.message), e)
       throw Error('trycatch')
     }

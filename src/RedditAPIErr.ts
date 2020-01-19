@@ -30,4 +30,12 @@ export namespace RedditAPIErr {
       Object.setPrototypeOf(this, Failed.prototype)
     }
   }
+
+  export class Null extends General {
+    constructor(msg: string) {
+      super(msg)
+      this.name = 'RedditAPINullError'
+      Object.setPrototypeOf(this, Null.prototype)
+    }
+  }
 }

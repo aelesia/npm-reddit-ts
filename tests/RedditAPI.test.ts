@@ -9,11 +9,13 @@ const PASSWORD = process.env['O2A_PASSWORD'] as string
 const USERNAME = process.env['O2A_USERNAME'] as string
 
 let Reddit = new RedditAPI({
-  client_id: CLIENT_ID,
-  client_secret: CLIENT_SECRET,
-  password: PASSWORD,
-  username: USERNAME,
-  user_agent: USER_AGENT
+  user_agent: USER_AGENT,
+  o2a: {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    password: PASSWORD,
+    username: USERNAME
+  }
 })
 
 describe('RedditAPI', () => {
@@ -59,15 +61,6 @@ describe('RedditAPI', () => {
     })
   })
 
-  test('Token', async () => {
-    // let results = await reddit.token()
-    // // console.log(results)
-    // expect(results.access_token).not.toBeNull()
-    // expect(results.token_type).toEqual('bearer')
-    // expect(results.expires_in).toEqual(3600)
-    // expect(results.scope).toEqual('*')
-  })
-
   test('Me', async () => {
     let results = await Reddit.me()
     expect(results).not.toBeNull()
@@ -75,7 +68,7 @@ describe('RedditAPI', () => {
   })
 
   test('Reply', async () => {
-    await Reddit.reply('t3_eaiqlw', `[Jest Test] ${USER_AGENT}`)
+    await Reddit.reply('t3_eaiqlw', `[Jest Test Reply ${new Date().toLocaleString()}] ${USER_AGENT}`)
   })
 
   describe('Search & Delete', () => {
@@ -102,7 +95,7 @@ describe('RedditAPI', () => {
   })
 
   test('Edit', async () => {
-    await Reddit.edit('t3_eaiqlw', `[Jest Test ${new Date().toLocaleString()}] ${USER_AGENT}`)
+    await Reddit.edit('t3_eaiqlw', `[Jest Test Edit ${new Date().toLocaleString()}] ${USER_AGENT}`)
   })
 
   // describe('reply search delete', () => {
