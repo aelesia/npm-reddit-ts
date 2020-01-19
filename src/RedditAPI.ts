@@ -43,6 +43,10 @@ export default class RedditAPI {
     }
   }
 
+  set_token(bearer_token: string): void {
+    this.oauth2 = this.oauth2.auth_bearer(bearer_token)
+  }
+
   async comments(subreddit: string): Promise<Post[]> {
     return await this.trycatch<Post[]>(async () => {
       let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/comments.json`).get<Comments>()).data
@@ -126,7 +130,10 @@ export default class RedditAPI {
       return await func()
     } catch (e) {
       if (e instanceof RedditAPIErr.General) throw e
-      else if (e.response?.status === 503 ?? false) rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
+      else if (e.response?.status === 503 ?? false)
+        rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
+      else if (e.response?.status === 401 ?? false)
+        rethrow(new RedditAPIErr.Unauthorized('Unauthorized. Check your credentials'), e)
       else if (e instanceof TypeError && e.message.match(/Cannot read property .* of null/)) {
         rethrow(new RedditAPIErr.Null('Did you forget to initialize RedditAPI Client with O2A or Bearer token?'), e)
       }

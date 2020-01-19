@@ -38,4 +38,12 @@ export namespace RedditAPIErr {
       Object.setPrototypeOf(this, Null.prototype)
     }
   }
+
+  export class Unauthorized extends General {
+    constructor(msg: string) {
+      super(msg)
+      this.name = 'RedditAPIUnauthorizedError'
+      Object.setPrototypeOf(this, Unauthorized.prototype)
+    }
+  }
 }
