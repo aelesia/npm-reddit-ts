@@ -7,6 +7,7 @@ import { Me } from './types/Me.type'
 import { RedditAPIErr } from './RedditAPIErr'
 import { Search } from './types/Search.type'
 import { map_search, map_t1, map_t3 } from './Map'
+import { rethrow } from '@aelesia/commons'
 
 type Credentials = {
   user_agent: string
@@ -32,6 +33,9 @@ export default class RedditAPI {
           })
         )
         .header('User-Agent', credentials.user_agent)
+    } else if (false) {
+      // For future usage where Bearer token is passed instead of OAuth2 token
+      this.oauth2 = Http.url('').auth_bearer('')
     }
   }
 
@@ -90,6 +94,43 @@ export default class RedditAPI {
 
     if (resp.status !== 200) {
       throw new RedditAPIErr.General(`${JSON.stringify(resp.data)}`)
+    }
+  }
+
+  // async edit(thing_id: string, text: string): Promise<void> {
+  //   try {
+  //     let resp = await this.oauth2
+  //       .url('https://oauth.reddit.com/api/editusertext')
+  //       .body_forms({ thing_id, text })
+  //       .post<JQueryResponse>()
+  //     if (!resp.data.success) {
+  //       throw new RedditAPIErr.General(`${JSON.stringify(resp.data)}`)
+  //     }
+  //   } catch (e) {
+  //     if (e instanceof RedditAPIErr.General) throw e
+  //     rethrow(new RedditAPIErr.General(e.message), e)
+  //   }
+  // }
+
+  async edit(thing_id: string, text: string): Promise<void> {
+    return await this.trycatch<void>(async () => {
+      let resp = await this.oauth2
+        .url('https://oauth.reddit.com/api/editusertext')
+        .body_forms({ thing_id, text })
+        .post<JQueryResponse>()
+      if (!resp.data.success) {
+        throw new RedditAPIErr.Failed(`${JSON.stringify(resp.data)}`)
+      }
+    })
+  }
+
+  async trycatch<T>(func: Function): Promise<T> {
+    try {
+      return await func()
+    } catch (e) {
+      if (e instanceof RedditAPIErr.General) throw e
+      rethrow(new RedditAPIErr.General(e.message), e)
+      throw Error('trycatch')
     }
   }
 }

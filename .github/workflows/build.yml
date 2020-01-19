@@ -46,7 +46,7 @@ jobs:
       - if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: yarn install
 
-      - run: CLIENT_ID=${{secrets.CLIENT_ID}} SECRET=${{secrets.SECRET}} USERNAME=${{secrets.USERNAME}} PASSWORD=${{secrets.PASSWORD}} yarn run test_coverage
+      - run: O2A_CLIENT_ID=${{secrets.CLIENT_ID}} O2A_SECRET=${{secrets.SECRET}} O2A_USERNAME=${{secrets.USERNAME}} O2A_PASSWORD=${{secrets.PASSWORD}} yarn run test_coverage
 
   lint:
     if: contains(github.ref, 'refs/heads/develop') || contains(github.ref, 'refs/heads/release') || contains(github.ref, 'refs/heads/hotfix') || contains(github.ref, 'refs/heads/ci')

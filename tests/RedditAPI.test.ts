@@ -2,11 +2,11 @@ import RedditAPI from '../src/RedditAPI'
 import { Kind, Post } from '../src/types/Post.type'
 import * as pkg from '../package.json'
 
-const CLIENT_ID = process.env['CLIENT_ID'] as string
-const CLIENT_SECRET = process.env['SECRET'] as string
+const CLIENT_ID = process.env['O2A_CLIENT_ID'] as string
+const CLIENT_SECRET = process.env['O2A_SECRET'] as string
 const USER_AGENT = `npm:reddit-ts:v${pkg.version} (by /u/aelesia)`
-const PASSWORD = process.env['PASSWORD'] as string
-const USERNAME = process.env['USERNAME'] as string
+const PASSWORD = process.env['O2A_PASSWORD'] as string
+const USERNAME = process.env['O2A_USERNAME'] as string
 
 let Reddit = new RedditAPI({
   client_id: CLIENT_ID,
@@ -99,6 +99,10 @@ describe('RedditAPI', () => {
     test('Delete', async () => {
       await Reddit.delete(post.id)
     })
+  })
+
+  test('Edit', async () => {
+    await Reddit.edit('t3_eaiqlw', `[Jest Test ${new Date().toLocaleString()}] ${USER_AGENT}`)
   })
 
   // describe('reply search delete', () => {
