@@ -1,4 +1,4 @@
-export interface Me {
+export type Me = {
   is_employee: boolean
   seen_layout_switch: boolean
   has_visited_new_profile: boolean
@@ -58,7 +58,7 @@ export interface Me {
   seen_subreddit_chat_ftux: boolean
 }
 
-export interface Features {
+type Features = {
   promoted_trend_blanks: boolean
   show_amp_link: boolean
   chat: boolean
@@ -89,13 +89,13 @@ export interface Features {
   expensive_coins_package: boolean
 }
 
-export interface Mweb {
+type Mweb = {
   owner: string
   variant: string
   experiment_id: number
 }
 
-export interface Subreddit {
+type Subreddit = {
   default_set: boolean
   user_is_contributor: boolean
   banner_img: string

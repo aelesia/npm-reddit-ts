@@ -2,7 +2,7 @@ import { Comments } from './types/Comments.type'
 import { Threads } from './types/Threads.type'
 import Http, { OAuth2Token } from 'httyp'
 import { Post } from './types/Post.type'
-import { JQueryResponse } from './types/RedditAPI.type'
+import { JQueryResponse, Token, TokenForm } from './types/RedditAPI.type'
 import { Me } from './types/Me.type'
 import { RedditAPIErr } from './RedditAPIErr'
 import { Search } from './types/Search.type'
@@ -38,7 +38,7 @@ export default class RedditAPI {
         .header('User-Agent', credentials.user_agent)
     } else if (credentials.bearer_token) {
       this.oauth2 = Http.url('')
-        .auth_bearer('')
+        .auth_bearer(credentials.bearer_token)
         .header('User-Agent', credentials.user_agent)
     }
   }
