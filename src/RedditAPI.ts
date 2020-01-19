@@ -130,8 +130,7 @@ export default class RedditAPI {
       return await func()
     } catch (e) {
       if (e instanceof RedditAPIErr.General) throw e
-      else if (e.response?.status === 503 ?? false)
-        rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
+      else if (e.response?.status === 503 ?? false) rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
       else if (e.response?.status === 401 ?? false)
         rethrow(new RedditAPIErr.Unauthorized('Unauthorized. Check your credentials'), e)
       else if (e instanceof TypeError && e.message.match(/Cannot read property .* of null/)) {
