@@ -11,6 +11,7 @@ export function map_t1(it: Comment): Post {
     body: it.data.body,
     date: it.data.created_utc,
     kind: Kind.Comment,
+    subreddit: it.data.subreddit,
     parent_id: it.data.parent_id,
     thread_id: it.data.link_id,
     title: it.data.link_title,
@@ -28,6 +29,7 @@ export function map_t3(it: Thread): Post {
     body: it.data.selftext === '' ? '<empty>' : it.data.selftext,
     date: it.data.created_utc,
     kind: Kind.Thread,
+    subreddit: it.data.subreddit,
     thread_id: it.data.name,
     title: it.data.title,
     url: it.data.url

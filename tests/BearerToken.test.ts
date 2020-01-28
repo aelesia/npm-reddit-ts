@@ -1,5 +1,4 @@
 import RedditAPI from '../src/RedditAPI'
-import { Kind, Post } from '../src/types/Post.type'
 import * as pkg from '../package.json'
 import Http from 'httyp'
 import { Token, TokenForm } from '../src/types/RedditAPI.type'

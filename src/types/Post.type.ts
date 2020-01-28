@@ -10,6 +10,7 @@ export type Post = {
   author: string
   thread_id: string
   parent_id?: string
+  subreddit: string
   title: string
   body: string
   date: number
