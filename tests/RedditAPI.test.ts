@@ -1,5 +1,6 @@
 import RedditAPI from '../src/RedditAPI'
 import { Kind, Post } from '../src/types/Post.type'
+import { DateUtil as _, StringUtil as S } from '@aelesia/commons'
 import * as pkg from '../package.json'
 
 const CLIENT_ID = process.env['O2A_CLIENT_ID'] as string
@@ -34,11 +35,15 @@ describe('RedditAPI', () => {
     results.forEach(r => {
       expect(r.kind).toEqual(Kind.Comment)
       expect(r.date).not.toBeNull()
+      expect(r.date).toBeInstanceOf(Date)
+      expect(_.is_before(r.date, _.now())).toBeTruthy()
+      expect(_.is_after(r.date, _.subtract(S.days('365'), _.now()))).toBeTruthy()
       expect(r.url).not.toBeNull()
       expect(r.title).not.toBeNull()
       expect(r.thread_id).not.toBeNull()
       expect(r.id).not.toBeNull()
       expect(r.id).toMatch(new RegExp('t1_[\\w\\d]{7}'))
+      expect(r.subreddit).toEqual('testingground4bots')
       expect(r.body).not.toBeNull()
       expect(r.author).not.toBeNull()
     })
@@ -51,11 +56,15 @@ describe('RedditAPI', () => {
     results.forEach(r => {
       expect(r.kind).toEqual(Kind.Thread)
       expect(r.date).not.toBeNull()
+      expect(r.date).toBeInstanceOf(Date)
+      expect(_.is_before(r.date, _.now())).toBeTruthy()
+      expect(_.is_after(r.date, _.subtract(S.days('365'), _.now()))).toBeTruthy()
       expect(r.url).not.toBeNull()
       expect(r.title).not.toBeNull()
       expect(r.thread_id).not.toBeNull()
       expect(r.id).not.toBeNull()
       expect(r.id).toMatch(new RegExp('t3_[\\w\\d]{6}'))
+      expect(r.subreddit).toEqual('testingground4bots')
       expect(r.body).not.toBeNull()
       expect(r.author).not.toBeNull()
     })

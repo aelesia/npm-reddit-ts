@@ -13,5 +13,5 @@ export type Post = {
   subreddit: string
   title: string
   body: string
-  date: number
+  date: Date
 }
