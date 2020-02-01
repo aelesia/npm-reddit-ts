@@ -107,6 +107,11 @@ describe('RedditAPI', () => {
     await Reddit.edit('t3_eaiqlw', `[Jest Test Edit ${new Date().toLocaleString()}] ${USER_AGENT}`)
   })
 
+  test('Search Max Posts 100', async () => {
+    let results = await Reddit.search_all('aelesia-', 100)
+    expect(results.length).toBeLessThanOrEqual(100)
+  })
+
   // describe('reply search delete', () => {
   //   let id = ''
   //   test('Reply', async () => {

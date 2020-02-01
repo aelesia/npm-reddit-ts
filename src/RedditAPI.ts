@@ -90,7 +90,7 @@ export default class RedditAPI {
       .data
   }
 
-  async search_all(username: string): Promise<Post[]> {
+  async search_all(username: string, max_results = 999): Promise<Post[]> {
     return await this.trycatch<Post[]>(async () => {
       let data: Search | undefined
       let all_posts: Post[] = []
@@ -98,7 +98,7 @@ export default class RedditAPI {
         data = await this.search(username, data?.data.after ?? '')
         let map = data.data.children.map(map_search)
         all_posts = all_posts.concat(map)
-      } while (data.data.after)
+      } while (data.data.after && all_posts.length < max_results)
 
       return all_posts
     })

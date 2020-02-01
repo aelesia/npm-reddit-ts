@@ -1,6 +1,6 @@
 {
   "name": "reddit-ts",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Reddit API written in Typescript",
   "author": "aelesia",
   "license": "MIT",
