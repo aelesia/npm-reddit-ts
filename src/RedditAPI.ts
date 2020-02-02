@@ -2,12 +2,13 @@ import { Comments } from './types/Comments.type'
 import { Threads } from './types/Threads.type'
 import Http, { OAuth2Token } from 'httyp'
 import { Post } from './types/Post.type'
-import { JQueryResponse } from './types/RedditAPI.type'
+import { JQueryResponse, Token } from './types/RedditAPI.type'
 import { Me } from './types/Me.type'
 import { RedditAPIErr } from './RedditAPIErr'
 import { Search } from './types/Search.type'
 import { map_search, map_t1, map_t3 } from './Map'
-import { rethrow } from '@aelesia/commons'
+import { DateUtil, rethrow } from '@aelesia/commons'
+import { RedditAuthToken } from './RedditAuthToken'
 
 type Credentials = {
   user_agent: string
@@ -17,6 +18,12 @@ type Credentials = {
     password: string
     username: string
   }
+  o2a_implicit?: {
+    client_id: string
+    client_secret: string
+    redirect_uri: string
+    code: string
+  }
   bearer_token?: string
 }
 
@@ -25,22 +32,28 @@ export default class RedditAPI {
 
   constructor(credentials: Credentials) {
     if (credentials.o2a) {
-      this.oauth2 = Http.url('')
-        .auth_oauth2_password(
-          new OAuth2Token({
-            access_token_url: 'https://www.reddit.com/api/v1/access_token',
-            client_id: credentials.o2a.client_id,
-            client_secret: credentials.o2a.client_secret,
-            password: credentials.o2a.password,
-            username: credentials.o2a.username
-          })
-        )
-        .header('User-Agent', credentials.user_agent)
+      this.oauth2 = Http.url('').auth_oauth2_password(
+        new OAuth2Token({
+          access_token_url: 'https://www.reddit.com/api/v1/access_token',
+          client_id: credentials.o2a.client_id,
+          client_secret: credentials.o2a.client_secret,
+          password: credentials.o2a.password,
+          username: credentials.o2a.username
+        })
+      )
     } else if (credentials.bearer_token) {
-      this.oauth2 = Http.url('')
-        .auth_bearer(credentials.bearer_token)
-        .header('User-Agent', credentials.user_agent)
+      this.oauth2 = Http.url('').auth_bearer(credentials.bearer_token)
+    } else if (credentials.o2a_implicit) {
+      this.oauth2 = Http.url('').auth_oauth2_password(
+        new RedditAuthToken({
+          client_id: credentials.o2a_implicit.client_id,
+          client_secret: credentials.o2a_implicit.client_secret,
+          code: credentials.o2a_implicit.code,
+          redirect_uri: credentials.o2a_implicit.redirect_uri
+        })
+      )
     }
+    this.oauth2 = this.oauth2.header('User-Agent', credentials.user_agent)
   }
 
   set_token(bearer_token: string): void {
@@ -76,6 +89,31 @@ export default class RedditAPI {
         }
         throw new RedditAPIErr.Failed(`${JSON.stringify(resp.data)}`)
       }
+    })
+  }
+
+  async implicit_token(
+    client_id: string,
+    client_secret: string,
+    redirect_uri: string,
+    code: string
+  ): Promise<Token & { expires_on: Date }> {
+    return await this.trycatch<Token & { expires_on: Date }>(async () => {
+      let resp = (
+        await Http.url('https://www.reddit.com/api/v1/access_token')
+          .auth_basic(client_id, client_secret)
+          .body_forms({
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri
+          })
+          .post<Token | { error: string }>()
+      ).data
+
+      if ('error' in resp) {
+        throw new RedditAPIErr.Unauthorized(resp.error)
+      }
+      return { ...resp, ...{ expires_on: DateUtil.add(resp.expires_in * 1000) } }
     })
   }
 
@@ -125,7 +163,7 @@ export default class RedditAPI {
     })
   }
 
-  async trycatch<T>(func: Function): Promise<T> {
+  async trycatch<T>(func: () => Promise<T>): Promise<T> {
     try {
       return await func()
     } catch (e) {
