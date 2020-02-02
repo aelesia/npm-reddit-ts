@@ -29,4 +29,7 @@ describe('RedditAPI Authorization Code', () => {
   // test('RedditAuthToken', async () => {
   //   console.log(await Reddit.me())
   // })
+  test('Placeholder', async () => {
+    // This test exists so that Jest doesn't fail on empty tests
+  })
 })
