@@ -32,28 +32,33 @@ export default class RedditAPI {
 
   constructor(credentials: Credentials) {
     if (credentials.o2a) {
-      this.oauth2 = Http.url('').auth_oauth2_password(
-        new OAuth2Token({
-          access_token_url: 'https://www.reddit.com/api/v1/access_token',
-          client_id: credentials.o2a.client_id,
-          client_secret: credentials.o2a.client_secret,
-          password: credentials.o2a.password,
-          username: credentials.o2a.username
-        })
-      )
+      this.oauth2 = Http.url('')
+        .auth_oauth2_password(
+          new OAuth2Token({
+            access_token_url: 'https://www.reddit.com/api/v1/access_token',
+            client_id: credentials.o2a.client_id,
+            client_secret: credentials.o2a.client_secret,
+            password: credentials.o2a.password,
+            username: credentials.o2a.username
+          })
+        )
+        .header('User-Agent', credentials.user_agent)
     } else if (credentials.bearer_token) {
-      this.oauth2 = Http.url('').auth_bearer(credentials.bearer_token)
+      this.oauth2 = Http.url('')
+        .auth_bearer(credentials.bearer_token)
+        .header('User-Agent', credentials.user_agent)
     } else if (credentials.o2a_implicit) {
-      this.oauth2 = Http.url('').auth_oauth2_password(
-        new RedditAuthToken({
-          client_id: credentials.o2a_implicit.client_id,
-          client_secret: credentials.o2a_implicit.client_secret,
-          code: credentials.o2a_implicit.code,
-          redirect_uri: credentials.o2a_implicit.redirect_uri
-        })
-      )
+      this.oauth2 = Http.url('')
+        .auth_oauth2_password(
+          new RedditAuthToken({
+            client_id: credentials.o2a_implicit.client_id,
+            client_secret: credentials.o2a_implicit.client_secret,
+            code: credentials.o2a_implicit.code,
+            redirect_uri: credentials.o2a_implicit.redirect_uri
+          })
+        )
+        .header('User-Agent', credentials.user_agent)
     }
-    this.oauth2 = this.oauth2.header('User-Agent', credentials.user_agent)
   }
 
   set_token(bearer_token: string): void {
