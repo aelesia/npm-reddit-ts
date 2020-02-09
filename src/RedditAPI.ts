@@ -128,7 +128,7 @@ export default class RedditAPI {
     })
   }
 
-  private async search(username: string, after?: string): Promise<Search> {
+  protected async search(username: string, after?: string): Promise<Search> {
     return (await Http.url(`https://www.reddit.com/user/${username}.json?limit=100&after=${after ?? ''}`).get<Search>())
       .data
   }
