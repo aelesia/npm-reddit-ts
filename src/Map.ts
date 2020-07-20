@@ -1,5 +1,5 @@
 import { Comment } from './types/Comments.type'
-import { Kind, Post } from './types/Post.type'
+import { Post } from './types/Post.type'
 import { Thread } from './types/Threads.type'
 import { Child } from './types/Search.type'
 import { DateUtil as _ } from '@aelesia/commons'
@@ -11,7 +11,7 @@ export function map_t1(it: Comment): Post {
     author: it.data.author,
     body: it.data.body,
     date: _.to_date(it.data.created_utc),
-    kind: Kind.Comment,
+    kind: 't1',
     subreddit: it.data.subreddit,
     parent_id: it.data.parent_id,
     thread_id: it.data.link_id,
@@ -29,7 +29,7 @@ export function map_t3(it: Thread): Post {
     // body: it.data.selftext
     body: it.data.selftext === '' ? '<empty>' : it.data.selftext,
     date: _.to_date(it.data.created_utc),
-    kind: Kind.Thread,
+    kind: 't3',
     subreddit: it.data.subreddit,
     thread_id: it.data.name,
     title: it.data.title,
@@ -38,9 +38,9 @@ export function map_t3(it: Thread): Post {
 }
 
 export function map_search(it: Child): Post {
-  if (it.kind === Kind.Comment) {
+  if (it.kind === 't1') {
     return map_t1(it as any)
-  } else if (it.kind === Kind.Thread) {
+  } else if (it.kind === 't3') {
     return map_t3(it as any)
   } else {
     throw new IllegalArgumentException(`Invalid kind: ${it.kind}, id: ${it.data.id}`)

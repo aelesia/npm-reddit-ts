@@ -1,5 +1,5 @@
 import RedditAPI from '../src/RedditAPI'
-import { Kind, Post } from '../src/types/Post.type'
+import { Post } from '../src/types/Post.type'
 import { DateUtil as _, StringUtil as S } from '@aelesia/commons'
 import * as pkg from '../package.json'
 
@@ -33,7 +33,7 @@ describe('RedditAPI', () => {
     // console.log(results[0])
     expect(results.length).toEqual(25)
     results.forEach(r => {
-      expect(r.kind).toEqual(Kind.Comment)
+      expect(r.kind).toEqual('t1')
       expect(r.date).not.toBeNull()
       expect(r.date).toBeInstanceOf(Date)
       expect(_.is_before(r.date, _.now())).toBeTruthy()
@@ -54,7 +54,7 @@ describe('RedditAPI', () => {
     // console.log(results[0])
     expect(results.length).toEqual(25)
     results.forEach(r => {
-      expect(r.kind).toEqual(Kind.Thread)
+      expect(r.kind).toEqual('t3')
       expect(r.date).not.toBeNull()
       expect(r.date).toBeInstanceOf(Date)
       expect(_.is_before(r.date, _.now())).toBeTruthy()
@@ -77,7 +77,8 @@ describe('RedditAPI', () => {
   })
 
   test('Reply', async () => {
-    await Reddit.reply('t3_eaiqlw', `[Jest Test Reply ${new Date().toLocaleString()}] ${USER_AGENT}`)
+    const results = await Reddit.threads('testingground4bots')
+    await Reddit.reply(results[0].id, `[Jest Test Reply ${new Date().toLocaleString()}] ${USER_AGENT}`)
   })
 
   describe('Search & Delete', () => {

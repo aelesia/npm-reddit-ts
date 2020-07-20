@@ -1,10 +1,5 @@
-export enum Kind {
-  Thread = 't3',
-  Comment = 't1'
-}
-
 export type Post = {
-  kind: Kind
+  kind: 't1' | 't3'
   id: string
   url: string
   author: string
