@@ -1,4 +1,4 @@
-export interface Search {
+export interface SearchResult {
   kind: string
   data: SearchData
 }

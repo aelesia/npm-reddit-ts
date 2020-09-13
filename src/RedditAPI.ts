@@ -1,14 +1,17 @@
-import { Comments } from './types/Comments.type'
-import { Threads } from './types/Threads.type'
+import { CommentsResult } from './types/CommentsResult.type'
+import { ThreadResult } from './types/ThreadsResult.type'
 import Http, { OAuth2Token } from 'httyp'
-import { Post } from './types/Post.type'
+import { Post } from './types/models/Post.type'
 import { JQueryResponse, Token } from './types/RedditAPI.type'
-import { Me } from './types/Me.type'
+import { MeResult } from './types/MeResult.type'
 import { RedditAPIErr } from './RedditAPIErr'
-import { Search } from './types/Search.type'
+import { SearchResult } from './types/SearchResult.type'
 import { map_search, map_t1, map_t3 } from './Map'
-import { DateUtil, rethrow } from '@aelesia/commons'
+import { _, Throw } from '@aelesia/commons'
 import { RedditAuthToken } from './RedditAuthToken'
+import { UserResult } from './types/UserResult.type'
+import { User } from './types/models/User.type'
+import { ComposeRequest } from './types/Compose.type'
 
 type Credentials = {
   user_agent: string
@@ -67,7 +70,7 @@ export default class RedditAPI {
 
   async comments(subreddit: string): Promise<Post[]> {
     return await this.trycatch<Post[]>(async () => {
-      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/comments.json`).get<Comments>()).data
+      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/comments.json`).get<CommentsResult>()).data
 
       return data.data.children.map(map_t1)
     })
@@ -75,7 +78,7 @@ export default class RedditAPI {
 
   async threads(subreddit: string): Promise<Post[]> {
     return await this.trycatch<Post[]>(async () => {
-      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/new.json`).get<Threads>()).data
+      let data = (await Http.url(`https://www.reddit.com/r/${subreddit}/new.json`).get<ThreadResult>()).data
 
       return data.data.children.map(map_t3)
     })
@@ -118,24 +121,25 @@ export default class RedditAPI {
       if ('error' in resp) {
         throw new RedditAPIErr.Unauthorized(resp.error)
       }
-      return { ...resp, ...{ expires_on: DateUtil.add(resp.expires_in * 1000) } }
+      return { ...resp, ...{ expires_on: _.date.add(resp.expires_in * 1000) } }
     })
   }
 
-  async me(): Promise<Me> {
-    return await this.trycatch<Me>(async () => {
-      return (await this.oauth2.url('https://oauth.reddit.com/api/v1/me').get<Me>()).data
+  async me(): Promise<MeResult> {
+    return await this.trycatch<MeResult>(async () => {
+      return (await this.oauth2.url('https://oauth.reddit.com/api/v1/me').get<MeResult>()).data
     })
   }
 
-  protected async search(username: string, after?: string): Promise<Search> {
-    return (await Http.url(`https://www.reddit.com/user/${username}.json?limit=100&after=${after ?? ''}`).get<Search>())
-      .data
+  protected async search(username: string, after?: string): Promise<SearchResult> {
+    return (
+      await Http.url(`https://www.reddit.com/user/${username}.json?limit=100&after=${after ?? ''}`).get<SearchResult>()
+    ).data
   }
 
   async search_all(username: string, max_results = 999): Promise<Post[]> {
     return await this.trycatch<Post[]>(async () => {
-      let data: Search | undefined
+      let data: SearchResult | undefined
       let all_posts: Post[] = []
       do {
         data = await this.search(username, data?.data.after ?? '')
@@ -168,18 +172,46 @@ export default class RedditAPI {
     })
   }
 
+  async user(username: string): Promise<User> {
+    return await this.trycatch<User>(async () => {
+      let data = (await Http.url(`https://www.reddit.com/user/${username}/about.json`).get<UserResult>()).data.data
+      return _.obj.omit(data, 'subreddit')
+    })
+  }
+
+  async post(thing_id: string): Promise<Post> {
+    return await this.trycatch<Post>(async () => {
+      let data = (await Http.url(`https://api.reddit.com/api/info/?id=${thing_id}`).get<SearchResult>()).data.data
+      return map_search(data.children[0])
+    })
+  }
+
+  async compose(username: string, subject: string, body: string): Promise<void> {
+    return await this.trycatch<void>(async () => {
+      await this.oauth2
+        .url(`https://oauth.reddit.com/api/compose`)
+        .body_forms<ComposeRequest>({
+          api_type: 'json',
+          subject: subject,
+          text: body,
+          to: username
+        })
+        .post()
+    })
+  }
+
   async trycatch<T>(func: () => Promise<T>): Promise<T> {
     try {
       return await func()
     } catch (e) {
       if (e instanceof RedditAPIErr.General) throw e
-      else if (e.response?.status === 503 ?? false) rethrow(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
+      else if (e.response?.status === 503 ?? false) Throw(new RedditAPIErr.ServerBusy('Reddit Servers Busy'), e)
       else if (e.response?.status === 401 ?? false)
-        rethrow(new RedditAPIErr.Unauthorized('Unauthorized. Check your credentials'), e)
+        Throw(new RedditAPIErr.Unauthorized('Unauthorized. Check your credentials'), e)
       else if (e instanceof TypeError && e.message.match(/Cannot read property .* of null/)) {
-        rethrow(new RedditAPIErr.Null('Did you forget to initialize RedditAPI Client with O2A or Bearer token?'), e)
+        Throw(new RedditAPIErr.Null('Did you forget to initialize RedditAPI Client with O2A or Bearer token?'), e)
       }
-      rethrow(new RedditAPIErr.General(e.message), e)
+      Throw(new RedditAPIErr.General(e.message), e)
       throw Error('trycatch')
     }
   }

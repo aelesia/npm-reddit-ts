@@ -7,7 +7,7 @@
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
-export interface Comments {
+export interface CommentsResult {
   kind: string
   data: CommentsData
 }

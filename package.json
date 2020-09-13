@@ -1,6 +1,6 @@
 {
   "name": "reddit-ts",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Reddit API written in Typescript",
   "author": "aelesia",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "lint": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "@aelesia/commons": "^0.0.3",
+    "@aelesia/commons": "^0.5.0-next.40",
     "dotenv": "^8.2.0",
     "httyp": "^0.1.7"
   },

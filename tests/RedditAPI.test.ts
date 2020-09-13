@@ -1,6 +1,6 @@
 import RedditAPI from '../src/RedditAPI'
-import { Post } from '../src/types/Post.type'
-import { DateUtil as _, StringUtil as S } from '@aelesia/commons'
+import { Post } from '../src/types/models/Post.type'
+import { Date_, Time } from '@aelesia/commons'
 import * as pkg from '../package.json'
 
 const CLIENT_ID = process.env['O2A_CLIENT_ID'] as string
@@ -30,14 +30,13 @@ describe('RedditAPI', () => {
 
   test('Comments', async () => {
     let results = await Reddit.comments('testingground4bots')
-    // console.log(results[0])
     expect(results.length).toEqual(25)
     results.forEach(r => {
       expect(r.kind).toEqual('t1')
       expect(r.date).not.toBeNull()
       expect(r.date).toBeInstanceOf(Date)
-      expect(_.is_before(r.date, _.now())).toBeTruthy()
-      expect(_.is_after(r.date, _.subtract(S.days('365'), _.now()))).toBeTruthy()
+      expect(Date_.isBefore(r.date, Date_.now())).toBeTruthy()
+      expect(Date_.isAfter(r.date, Date_.minus(Time.days(365), Date_.now()))).toBeTruthy()
       expect(r.url).not.toBeNull()
       expect(r.title).not.toBeNull()
       expect(r.thread_id).not.toBeNull()
@@ -51,14 +50,13 @@ describe('RedditAPI', () => {
 
   test('Threads', async () => {
     let results = await Reddit.threads('testingground4bots')
-    // console.log(results[0])
     expect(results.length).toEqual(25)
     results.forEach(r => {
       expect(r.kind).toEqual('t3')
       expect(r.date).not.toBeNull()
       expect(r.date).toBeInstanceOf(Date)
-      expect(_.is_before(r.date, _.now())).toBeTruthy()
-      expect(_.is_after(r.date, _.subtract(S.days('365'), _.now()))).toBeTruthy()
+      expect(Date_.isBefore(r.date, Date_.now())).toBeTruthy()
+      expect(Date_.isAfter(r.date, Date_.minus(Time.days(365), Date_.now()))).toBeTruthy()
       expect(r.url).not.toBeNull()
       expect(r.title).not.toBeNull()
       expect(r.thread_id).not.toBeNull()
@@ -113,25 +111,58 @@ describe('RedditAPI', () => {
     expect(results.length).toBeLessThanOrEqual(100)
   })
 
-  // describe('reply search delete', () => {
-  //   let id = ''
-  //   test('Reply', async () => {
-  //     await reddit.reply('t3_eaiqlw', '[Jest Test: reply search delete] RedditAPI.test.ts')
-  //   })
-  //   test('Search & Delete', async () => {
-  //     let result = (await reddit.search_all('bot-aelesia-dev'))[0]
-  //     expect(result.body).toEqual('[Jest Test: reply search delete] RedditAPI.test.ts')
-  //     id = result.id
-  //     expect(id).not.toEqual('')
-  //     await reddit.delete(id)
-  //   })
-  //   test('Search post was deleted', async () => {
-  //     let results = await reddit.search_all(USERNAME)
-  //     expect(
-  //       results.some(it => {
-  //         return it.id === id
-  //       })
-  //     ).toEqual(false)
-  //   })
-  // })
+  test('User', async () => {
+    let results = await Reddit.user('bot-aelesia-dev')
+    expect(results.is_employee).toEqual(false)
+    expect(results.is_friend).toEqual(false)
+    expect(results.awardee_karma).toEqual(0)
+    expect(results.id).toEqual('18vcwzqz')
+    expect(results.verified).toEqual(true)
+    expect(results.is_gold).toEqual(false)
+    expect(results.is_mod).toEqual(false)
+    expect(results.awarder_karma).toEqual(0)
+    expect(results.has_verified_email).toEqual(false)
+    expect(results.icon_img).toEqual('https://www.redditstatic.com/avatars/avatar_default_16_EA0027.png')
+    expect(results.hide_from_robots).toEqual(false)
+    expect(results.link_karma).toBeGreaterThanOrEqual(1)
+    expect(results.pref_show_snoovatar).toEqual(false)
+    expect(results.total_karma).toBeGreaterThanOrEqual(3)
+    expect(results.name).toEqual('bot-aelesia-dev')
+    expect(results.created).toEqual(1524598131)
+    expect(results.created_utc).toEqual(1524569331)
+    expect(results.comment_karma).toBeGreaterThanOrEqual(2)
+    expect(results.has_subscribed).toEqual(false)
+    // @ts-ignore
+    expect(results['subreddit']).toBeUndefined()
+  })
+
+  test('post_t3', async () => {
+    let results = await Reddit.post('t3_irtuce')
+    expect(results.author).toEqual('aelesia-dev')
+    expect(results.id).toEqual('t3_irtuce')
+    expect(results.parent_id).toBeUndefined()
+    expect(results.body).toEqual('Body')
+    expect(results.date).toEqual(Date_.parse(1599981923))
+    expect(results.title).toEqual('Title')
+    expect(results.kind).toEqual('t3')
+    expect(results.subreddit).toEqual('testingground4bots')
+    expect(results.url).toContain('r/testingground4bots/comments/irtuce/title')
+  })
+
+  test('post_t1', async () => {
+    let results = await Reddit.post('t1_g52b546')
+    expect(results.author).toEqual('aelesia-dev')
+    expect(results.id).toEqual('t1_g52b546')
+    expect(results.parent_id).toEqual('t3_irtuce')
+    expect(results.body).toEqual('Comment')
+    expect(results.date).toEqual(Date_.parse(1599981934))
+    expect(results.title).toBeUndefined()
+    expect(results.kind).toEqual('t1')
+    expect(results.subreddit).toEqual('testingground4bots')
+    expect(results.url).toContain('/r/testingground4bots/comments/irtuce/title/g52b546')
+  })
+
+  test('compose', async () => {
+    await Reddit.compose(USERNAME, 'Jest Test', Date_.now().toUTCString())
+  })
 })

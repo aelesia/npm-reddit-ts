@@ -1,4 +1,4 @@
-import { DateUtil, rethrow } from '@aelesia/commons'
+import { Date_, Throw, Time } from '@aelesia/commons'
 import Http, { OAuth2Token } from 'httyp'
 
 type Token = {
@@ -47,10 +47,10 @@ export class RedditAuthToken extends OAuth2Token {
         throw Error(`Invalid token - ${JSON.stringify(data)}`)
       }
 
-      this.tkn = { ...data, ...{ expires_on: DateUtil.add(data.expires_in * 1000) } }
+      this.tkn = { ...data, ...{ expires_on: Date_.add(data.expires_in * 1000) } }
       console.log('this.tkn', this.tkn)
     } catch (e) {
-      rethrow(new Error('Unable to obtain O2A token'), e)
+      Throw(new Error('Unable to obtain O2A token'), e)
     }
   }
 
@@ -58,10 +58,10 @@ export class RedditAuthToken extends OAuth2Token {
     if (!this.tkn) {
       console.log('No token')
       await this.refresh_token()
-    } else if (DateUtil.has_passed(this.tkn.expires_on)) {
+    } else if (Date_.isPast(this.tkn.expires_on)) {
       console.log('Token expired')
       await this.refresh_token()
-    } else if (DateUtil.elapsed(this.tkn.expires_on) > this.tkn.expires_in * 0.9) {
+    } else if (Time.until(this.tkn.expires_on) < Time.mins(1)) {
       console.log('Token expiring soon')
       this.refresh_token()
         .then(() => {})

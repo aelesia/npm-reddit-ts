@@ -1,4 +1,4 @@
-export type Me = {
+export type MeResult = {
   is_employee: boolean
   seen_layout_switch: boolean
   has_visited_new_profile: boolean
